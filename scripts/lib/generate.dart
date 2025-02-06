@@ -58,11 +58,11 @@ main() async {
   }.map((p) => {"property": p}).toList();
 
   const templates = [
-    "maplibre_gl/android/src/main/java/com/mapbox/mapboxgl/LayerPropertyConverter.java",
-    "maplibre_gl/ios/Classes/LayerPropertyConverter.swift",
-    "maplibre_gl/lib/src/layer_expressions.dart",
-    "maplibre_gl/lib/src/layer_properties.dart",
-    "maplibre_gl_web/lib/src/layer_tools.dart",
+    "gebeta_gl/android/src/main/java/com/mapbox/mapboxgl/LayerPropertyConverter.java",
+    "gebeta_gl/ios/Classes/LayerPropertyConverter.swift",
+    "gebeta_gl/lib/src/layer_expressions.dart",
+    "gebeta_gl/lib/src/layer_properties.dart",
+    "gebeta_gl_web/lib/src/layer_tools.dart",
     "maplibre_gl_platform_interface/lib/src/source_properties.dart",
   ];
 

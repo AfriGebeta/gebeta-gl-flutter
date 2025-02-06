@@ -1,0 +1,84 @@
+buildscript {
+    ext.kotlin_version = '1.9.0'
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.2.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+group 'com.gebeta.gl'
+version '1.0'
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    // Set the package namespace for the library.
+    if (project.android.hasProperty("namespace")) {
+        namespace 'app.gebeta'
+    }
+    compileSdkVersion 34
+    ndkVersion "27.2.12479018"
+
+    defaultConfig {
+        minSdkVersion 21
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+    // Dependencies used when building the plugin.
+    dependencies {
+        implementation 'org.maplibre.gl:android-sdk:11.6.1'
+        implementation 'org.maplibre.gl:android-plugin-annotation-v9:3.0.2'
+        implementation 'org.maplibre.gl:android-plugin-offline-v9:3.0.2'
+        implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.10.1'
+}
+
+//-------------------------------------------------------------------
+// Tasks to prepare repackaged AAR files for the two plugin artifacts.
+tasks.register("prepareAnnotationAar", Copy) {
+    // Use the build task that actually produces the AAR.
+    // If "bundleReleaseAar" is not available, try "assembleRelease".
+    dependsOn("assembleRelease")
+    from("$buildDir/outputs/aar")
+    include "*-release.aar"
+    // Force the output file name to be exactly this:
+    rename { fileName ->
+        "android-plugin-annotation-v9.aar"
+    }
+    into("$buildDir/outputs/aar")
+}
+
+tasks.register("prepareOfflineAar", Copy) {
+    dependsOn("assembleRelease")
+    from("$buildDir/outputs/aar")
+    include "*-release.aar"
+    rename { fileName ->
+        "android-plugin-offline-v9.aar"
+    }
+    into("$buildDir/outputs/aar")
+}
