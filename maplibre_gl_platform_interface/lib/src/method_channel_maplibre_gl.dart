@@ -127,7 +127,7 @@ class MapLibreMethodChannel extends MapLibrePlatform {
     if (defaultTargetPlatform == TargetPlatform.android) {
       if (useHybridComposition) {
         return PlatformViewLink(
-          viewType: 'plugins.flutter.io/maplibre_gl',
+          viewType: 'plugins.flutter.io/gebeta_gl',
           surfaceFactory: (
             BuildContext context,
             PlatformViewController controller,
@@ -142,7 +142,7 @@ class MapLibreMethodChannel extends MapLibrePlatform {
           onCreatePlatformView: (PlatformViewCreationParams params) {
             final controller = PlatformViewsService.initAndroidView(
               id: params.id,
-              viewType: 'plugins.flutter.io/maplibre_gl',
+              viewType: 'plugins.flutter.io/gebeta_gl',
               layoutDirection: TextDirection.ltr,
               creationParams: creationParams,
               creationParamsCodec: const StandardMessageCodec(),
@@ -162,7 +162,7 @@ class MapLibreMethodChannel extends MapLibrePlatform {
         );
       } else {
         return AndroidView(
-          viewType: 'plugins.flutter.io/maplibre_gl',
+          viewType: 'plugins.flutter.io/gebeta_gl',
           onPlatformViewCreated: onPlatformViewCreated,
           gestureRecognizers: gestureRecognizers,
           creationParams: creationParams,
@@ -171,7 +171,7 @@ class MapLibreMethodChannel extends MapLibrePlatform {
       }
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return UiKitView(
-        viewType: 'plugins.flutter.io/maplibre_gl',
+        viewType: 'plugins.flutter.io/gebeta_gl',
         onPlatformViewCreated: onPlatformViewCreated,
         gestureRecognizers: gestureRecognizers,
         creationParams: creationParams,

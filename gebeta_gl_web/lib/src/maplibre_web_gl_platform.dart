@@ -44,7 +44,7 @@ class MapLibreMapController extends MapLibrePlatform
   void _registerViewFactory(Function(int) callback, int identifier) {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
-        'plugins.flutter.io/maplibre_gl$identifier', (int viewId) {
+        'plugins.flutter.io/gebeta_gl$identifier', (int viewId) {
       _mapElement = html.DivElement()
         ..style.position = 'absolute'
         ..style.top = '0'

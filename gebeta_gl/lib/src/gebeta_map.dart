@@ -8,7 +8,7 @@ enum AnnotationType { fill, line, circle, symbol }
 
 typedef MapCreatedCallback = void Function(GebetaMapController controller);
 
-@Deprecated('MaplibreMap was renamed to MapLibreMap. ')
+@Deprecated('MaplibreMap was renamed to GebetaMap. ')
 typedef MaplibreMap = GebetaMap;
 
 /// Shows a MapLibre map.
@@ -107,7 +107,7 @@ class GebetaMap extends StatefulWidget {
   /// Geographical bounding box for the camera target.
   final CameraTargetBounds cameraTargetBounds;
 
-  /// A MapLibre GL style document defining the map's appearance.
+  /// A Gebeta GL style document defining the map's appearance.
   /// The style document specification is at [https://maplibre.org/maplibre-style-spec].
   /// A short introduction can be found in the documentation of the [gebeta_gl] library.
   /// The following formats are supported:
@@ -190,12 +190,12 @@ class GebetaMap extends StatefulWidget {
   /// Set the layout margins for the Compass
   final Point? compassViewMargins;
 
-  /// Set the position for the MapLibre Attribution Button
-  /// When set to null, the default value of the underlying MapLibre libraries is used,
+  /// Set the position for the Gebeta Attribution Button
+  /// When set to null, the default value of the underlying Gebeta libraries is used,
   /// which differs depending on the operating system the app is being run on.
   final AttributionButtonPosition? attributionButtonPosition;
 
-  /// Set the layout margins for the MapLibre Attribution Buttons. If you set this
+  /// Set the layout margins for the Gebeta Attribution Buttons. If you set this
   /// value, you may also want to set [attributionButtonPosition] to harmonize
   /// the layout between iOS and Android, since the underlying frameworks have
   /// different defaults.
@@ -236,7 +236,7 @@ class GebetaMap extends StatefulWidget {
   /// * All fade/transition animations have completed
   final OnMapIdleCallback? onMapIdle;
 
-  /// Set `MapLibreMap.useHybridComposition` to `false` in order use Virtual-Display
+  /// Set `GebetaMap.useHybridComposition` to `false` in order use Virtual-Display
   /// (better for Android 9 and below but may result in errors on Android 12)
   /// or leave it `true` (default) to use Hybrid composition (Slower on Android 9 and below).
   static bool get useHybridComposition =>
@@ -253,8 +253,8 @@ class _GebetaMapState extends State<GebetaMap> {
   final Completer<GebetaMapController> _controller =
       Completer<GebetaMapController>();
 
-  late _MapLibreMapOptions _maplibreMapOptions;
-  final MapLibrePlatform _maplibrePlatform = MapLibrePlatform.createInstance();
+  late _GebetaMapOptions _gebetaMapOptions;
+  final MapLibrePlatform _gebetaPlatform = MapLibrePlatform.createInstance();
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +265,7 @@ class _GebetaMapState extends State<GebetaMap> {
     final creationParams = <String, dynamic>{
       'initialCameraPosition': widget.initialCameraPosition.toMap(),
       'styleString': widget.styleString,
-      'options': _MapLibreMapOptions.fromWidget(widget).toMap(),
+      'options': _GebetaMapOptions.fromWidget(widget).toMap(),
       'dragEnabled': widget.dragEnabled,
       if (widget.iosLongClickDuration != null)
         'iosLongClickDurationMilliseconds':
@@ -274,7 +274,7 @@ class _GebetaMapState extends State<GebetaMap> {
 
     return Stack(
       children: [
-        _maplibrePlatform.buildView(
+        _gebetaPlatform.buildView(
           creationParams,
           onPlatformViewCreated,
           widget.gestureRecognizers,
@@ -297,8 +297,8 @@ class _GebetaMapState extends State<GebetaMap> {
             ),
             child: Image.asset(
               'packages/gebeta_gl/assets/icons/gebeta.png',
-              width: 24.0,
-              height: 24.0,
+              width: 16.0,
+              height: 16.0,
             ),
           ),
         ),
@@ -309,7 +309,7 @@ class _GebetaMapState extends State<GebetaMap> {
   @override
   void initState() {
     super.initState();
-    _maplibreMapOptions = _MapLibreMapOptions.fromWidget(widget);
+    _gebetaMapOptions = _GebetaMapOptions.fromWidget(widget);
   }
 
   @override
@@ -324,10 +324,10 @@ class _GebetaMapState extends State<GebetaMap> {
   @override
   void didUpdateWidget(GebetaMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final newOptions = _MapLibreMapOptions.fromWidget(widget);
-    final updates = _maplibreMapOptions.updatesMap(newOptions);
+    final newOptions = _GebetaMapOptions.fromWidget(widget);
+    final updates = _gebetaMapOptions.updatesMap(newOptions);
     _updateOptions(updates);
-    _maplibreMapOptions = newOptions;
+    _gebetaMapOptions = newOptions;
   }
 
   Future<void> _updateOptions(Map<String, dynamic> updates) async {
@@ -340,7 +340,7 @@ class _GebetaMapState extends State<GebetaMap> {
 
   Future<void> onPlatformViewCreated(int id) async {
     final controller = GebetaMapController(
-      maplibrePlatform: _maplibrePlatform,
+      maplibrePlatform: _gebetaPlatform,
       initialCameraPosition: widget.initialCameraPosition,
       onStyleLoadedCallback: () {
         if (_controller.isCompleted) {
@@ -359,18 +359,18 @@ class _GebetaMapState extends State<GebetaMap> {
       annotationOrder: widget.annotationOrder,
       annotationConsumeTapEvents: widget.annotationConsumeTapEvents,
     );
-    await _maplibrePlatform.initPlatform(id);
+    await _gebetaPlatform.initPlatform(id);
     _controller.complete(controller);
     widget.onMapCreated?.call(controller);
   }
 }
 
-/// Configuration options for the MapLibreMap user interface.
+/// Configuration options for the GebetaMap user interface.
 ///
 /// When used to change configuration, null values will be interpreted as
 /// "do not change this configuration option".
-class _MapLibreMapOptions {
-  _MapLibreMapOptions({
+class _GebetaMapOptions {
+  _GebetaMapOptions({
     this.compassEnabled,
     this.cameraTargetBounds,
     this.styleString,
@@ -391,7 +391,7 @@ class _MapLibreMapOptions {
     this.attributionButtonMargins,
   });
 
-  _MapLibreMapOptions.fromWidget(GebetaMap map)
+  _GebetaMapOptions.fromWidget(GebetaMap map)
       : this(
           compassEnabled: map.compassEnabled,
           cameraTargetBounds: map.cameraTargetBounds,
@@ -499,7 +499,7 @@ class _MapLibreMapOptions {
     return optionsMap;
   }
 
-  Map<String, dynamic> updatesMap(_MapLibreMapOptions newOptions) {
+  Map<String, dynamic> updatesMap(_GebetaMapOptions newOptions) {
     final prevOptionsMap = toMap();
     final newOptionsMap = newOptions.toMap();
 

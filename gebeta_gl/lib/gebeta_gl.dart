@@ -84,7 +84,7 @@ export 'package:maplibre_gl_platform_interface/maplibre_gl_platform_interface.da
 
 part 'src/controller.dart';
 
-part 'src/maplibre_map.dart';
+part 'src/gebeta_map.dart';
 
 part 'src/global.dart';
 
@@ -102,4 +102,4 @@ part 'src/annotation_manager.dart';
 
 part 'src/util.dart';
 
-part 'src/maplibre_styles.dart';
+part 'src/gebeta_styles.dart';

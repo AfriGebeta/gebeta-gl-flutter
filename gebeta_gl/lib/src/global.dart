@@ -4,7 +4,7 @@
 
 part of '../gebeta_gl.dart';
 
-const _globalChannel = MethodChannel('plugins.flutter.io/maplibre_gl');
+const _globalChannel = MethodChannel('plugins.flutter.io/gebeta_gl');
 
 /// Copy tiles db file passed in to the tiles cache directory (sideloaded) to
 /// make tiles available offline.
