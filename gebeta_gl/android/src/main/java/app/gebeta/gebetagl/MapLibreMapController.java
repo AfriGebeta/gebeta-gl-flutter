@@ -155,6 +155,9 @@ final class MapLibreMapController
           //     updateMyLocationEnabled();
           //   }
           // }
+          // REMOVE ATTRIBUTION DIALOG
+          mapLibreMap.getUiSettings().setAttributionEnabled(false);
+          mapLibreMap.getUiSettings().setAttributionEnabled(false);
           updateMyLocationEnabled();
 
           if (null != bounds) {

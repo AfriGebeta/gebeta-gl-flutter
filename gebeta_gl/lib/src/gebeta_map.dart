@@ -280,8 +280,8 @@ class _GebetaMapState extends State<GebetaMap> {
           widget.gestureRecognizers,
         ),
         Positioned(
-          bottom: 2.0,
-          right: 2.0,
+          bottom: 4.0,
+          right: 4.0,
           child: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(

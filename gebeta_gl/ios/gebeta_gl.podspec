@@ -10,9 +10,9 @@ A new Flutter plugin.
                        DESC
   s.homepage         = 'http://example.com'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Gebeta' => 'info@gebeta.app' }
   s.source           = { :path => '.' }
-  s.source_files = 'gebeta_gl/Sources/gebeta_gl/**/*'
+  s.source_files = 'maplibre_gl/Sources/maplibre_gl/**/*'
   s.dependency 'Flutter'
   # When updating the dependency version,
   # make sure to also update the version in Package.swift.

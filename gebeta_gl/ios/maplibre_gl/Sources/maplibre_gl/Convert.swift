@@ -3,6 +3,10 @@ import MapLibre
 class Convert {
     class func interpretMapLibreMapOptions(options: Any?, delegate: MapLibreMapOptionsSink) {
         guard let options = options as? [String: Any] else { return }
+        /*
+         * DISABLE ATTRIBUTION BUTTON
+         */
+        delegate.setAttributionEnabled(false)
         if let cameraTargetBounds = options["cameraTargetBounds"] as? [[[Double]]] {
             delegate
                 .setCameraTargetBounds(bounds: MLNCoordinateBounds.fromArray(cameraTargetBounds[0]))
