@@ -12,7 +12,7 @@ A new Flutter plugin.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Gebeta' => 'info@gebeta.app' }
   s.source           = { :path => '.' }
-  s.source_files = 'maplibre_gl/Sources/maplibre_gl/**/*'
+  s.source_files = 'gebeta_gl/Sources/gebeta_gl/**/*'
   s.dependency 'Flutter'
   # When updating the dependency version,
   # make sure to also update the version in Package.swift.

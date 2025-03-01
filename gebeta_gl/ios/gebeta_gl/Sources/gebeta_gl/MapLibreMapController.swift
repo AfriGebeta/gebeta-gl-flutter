@@ -44,7 +44,7 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
         super.init()
 
         channel = FlutterMethodChannel(
-            name: "plugins.flutter.io/maplibre_gl_\(viewId)",
+            name: "plugins.flutter.io/gebeta_gl_\(viewId)",
             binaryMessenger: registrar.messenger()
         )
         channel!
@@ -87,6 +87,15 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
                 )
                 initialTilt = camera.pitch
             }
+            
+            // Check if args contains an API key and set it globally
+            if let options = args["options"] as? [String: Any] {
+                if let apiKey = options["apiKey"] as? String, !apiKey.isEmpty {
+                    NSLog("Setting API key globally from MapLibreMapController")
+                    MapLibreMapsPlugin.setGlobalApiKey(apiKey)
+                }
+            }
+            
             // if let onAttributionClickOverride = args["onAttributionClickOverride"] as? Bool {
             //     if onAttributionClickOverride {
             //         setupAttribution(mapView)
@@ -939,6 +948,19 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
             reply["filter"] = currentLayerFilter as NSObject
             result(reply)
 
+        case "style#setFilter":
+            guard let arguments = methodCall.arguments as? [String: Any] else { return }
+            guard let layerId = arguments["layerId"] as? String else { return }
+            guard let filter = arguments["filter"] as? String else { return }
+            guard let layer = mapView.style?.layer(withIdentifier: layerId) else {
+                result(nil)
+                return
+            }
+            switch setFilter(layer, filter) {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -1134,22 +1156,24 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
             action: #selector(showAttribution),
             for: UIControl.Event.touchUpInside
         )
-    }
-
-    /*
-     * Custom click handler for the attribution button. This callback is bound when
-     * the application specifies an onAttributionClick handler.
-     */
-    @objc func showAttribution() {
-        channel?.invokeMethod("map#onAttributionClick", arguments: [])
     } */
 
     /*
      *  MLNMapViewDelegate
      */
-    func mapView(_ mapView: MLNMapView, didFinishLoading _: MLNStyle) {
+    func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
         isMapReady = true
         updateMyLocationEnabled()
+
+        // Log the current network configuration to verify headers are still set
+        NSLog("Network configuration after style loaded:")
+        MapLibreMapsPlugin.logNetworkConfiguration()
+        
+        // If API key is set, ensure it's still applied
+        if let apiKey = MapLibreMapsPlugin.apiKey, !apiKey.isEmpty {
+            NSLog("Re-applying API key to ensure it's set for all future requests")
+            MapLibreMapsPlugin.setGlobalApiKey(apiKey)
+        }
 
         if let initialTilt = initialTilt {
             let camera = mapView.camera
@@ -1159,24 +1183,64 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
 
         addedShapesByLayer.removeAll()
         interactiveFeatureLayerIds.removeAll()
-
-        mapReadyResult?(nil)
-
+        
+        // Log the style sources
+        let sources = style.sources ?? []
+        NSLog("Style loaded with \(sources.count) sources:")
+        for source in sources {
+            NSLog("Source: \(source.identifier), type: \(type(of: source))")
+            
+            // If it's a vector source, log the URL template
+            if let vectorSource = source as? MLNVectorTileSource {
+                NSLog("Vector source URL template: \(vectorSource.configurationURL?.absoluteString ?? "nil")")
+            }
+        }
+        
+        if let mapReadyResult = mapReadyResult {
+            mapReadyResult(nil)
+            self.mapReadyResult = nil
+        }
+        
         // On first launch we only call map#onStyleLoaded if map#waitForMap has already been called
         if !isFirstStyleLoad || mapReadyResult != nil {
             isFirstStyleLoad = false
-
-
-
             if let channel = channel {
+                onStyleLoadedCalled = true
                 channel.invokeMethod("map#onStyleLoaded", arguments: nil)
             }
         }
     }
-
+    
+    func mapViewDidFailLoadingMap(_ mapView: MLNMapView, withError error: Error) {
+        NSLog("Failed to load map: \(error.localizedDescription)")
+        
+        // Check if the error is related to network requests
+        if let urlError = error as? URLError {
+            NSLog("URL Error: \(urlError.code.rawValue), \(urlError.localizedDescription)")
+        }
+    }
+    
     // handle missing images
     func mapView(_: MLNMapView, didFailToLoadImage name: String) -> UIImage? {
+        NSLog("Failed to load image: \(name)")
         return loadIconImage(name: name)
+    }
+    
+    // Add a method to inspect the current network configuration
+    func logNetworkConfiguration() {
+        let config = MLNNetworkConfiguration.sharedManager.sessionConfiguration
+        NSLog("Current network configuration:")
+        
+        if let config = config, let headers = config.httpAdditionalHeaders {
+            NSLog("HTTP headers: \(headers)")
+        } else {
+            NSLog("No HTTP headers set")
+        }
+        
+        if let config = config {
+            NSLog("Cache policy: \(config.requestCachePolicy.rawValue)")
+            NSLog("Timeout: \(config.timeoutIntervalForRequest)")
+        }
     }
 
     func mapView(_: MLNMapView, didUpdate userLocation: MLNUserLocation?) {
@@ -1680,13 +1744,132 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
 
     func setStyleString(styleString: String) {
         // Check if json, url, absolute path or asset path:
+        NSLog("Setting style string: \(styleString.prefix(100))...")
+        
+        // Force apply the API key before loading the style
+        if let apiKey = MapLibreMapsPlugin.apiKey, !apiKey.isEmpty {
+            NSLog("Re-applying API key before loading style")
+            MapLibreMapsPlugin.setGlobalApiKey(apiKey)
+            
+            // Directly set the Authorization header on the MLNNetworkConfiguration
+            let config = URLSessionConfiguration.default
+            config.httpAdditionalHeaders = ["Authorization": "Bearer \(apiKey)"]
+            MLNNetworkConfiguration.sharedManager.sessionConfiguration = config
+            
+            // Ensure the API key is set in the URL protocol
+            AuthorizationURLProtocol.apiKey = apiKey
+        }
+        
+        // Log the current network configuration to verify headers are set
+        NSLog("Network configuration before loading style:")
+        MapLibreMapsPlugin.logNetworkConfiguration()
+        
         if styleString.isEmpty {
             NSLog("setStyleString - string empty")
         } else if styleString.hasPrefix("{") || styleString.hasPrefix("[") {
-            // Currently the iOS MapLibre SDK does not have a builder for json.
-            NSLog("setStyleString - JSON style currently not supported")
+            // Handle JSON string by creating a temporary file
+            do {
+                // Parse the JSON to ensure it's valid and to modify it if needed
+                guard let jsonData = styleString.data(using: .utf8) else {
+                    NSLog("setStyleString - Failed to convert string to data")
+                    return
+                }
+                
+                // Parse the JSON
+                guard var jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] else {
+                    NSLog("setStyleString - Failed to parse JSON")
+                    return
+                }
+                
+                // Modify the sources to include the API key as a query parameter
+                if let sources = jsonObject["sources"] as? [String: Any] {
+                    var modifiedSources = [String: Any]()
+                    
+                    for (sourceId, sourceConfig) in sources {
+                        if var sourceDict = sourceConfig as? [String: Any] {
+                            // Handle tile URLs in the tiles array
+                            if var tiles = sourceDict["tiles"] as? [String] {
+                                var modifiedTiles = [String]()
+                                
+                                for tileUrl in tiles {
+                                    if tileUrl.contains("gebeta.app") && MapLibreMapsPlugin.apiKey != nil {
+                                        // Add the API key as a query parameter
+                                        let apiKey = MapLibreMapsPlugin.apiKey!
+                                        if tileUrl.contains("?") {
+                                            modifiedTiles.append("\(tileUrl)&apiKey=\(apiKey)")
+                                        } else {
+                                            modifiedTiles.append("\(tileUrl)?apiKey=\(apiKey)")
+                                        }
+                                        NSLog("Modified tile URL to include API key: \(tileUrl) -> \(modifiedTiles.last!)")
+                                    } else {
+                                        modifiedTiles.append(tileUrl)
+                                    }
+                                }
+                                
+                                sourceDict["tiles"] = modifiedTiles
+                            }
+                            
+                            // Handle URL in the url property
+                            if let url = sourceDict["url"] as? String, url.contains("gebeta.app") && MapLibreMapsPlugin.apiKey != nil {
+                                let apiKey = MapLibreMapsPlugin.apiKey!
+                                if url.contains("?") {
+                                    sourceDict["url"] = "\(url)&apiKey=\(apiKey)"
+                                } else {
+                                    sourceDict["url"] = "\(url)?apiKey=\(apiKey)"
+                                }
+                                NSLog("Modified source URL to include API key: \(url) -> \(sourceDict["url"]!)")
+                            }
+                            
+                            modifiedSources[sourceId] = sourceDict
+                        } else {
+                            modifiedSources[sourceId] = sourceConfig
+                        }
+                    }
+                    
+                    jsonObject["sources"] = modifiedSources
+                }
+                
+                // Log the sources
+                if let sources = jsonObject["sources"] as? [String: Any] {
+                    NSLog("Style JSON contains \(sources.count) sources")
+                    for (sourceId, sourceConfig) in sources {
+                        if let sourceDict = sourceConfig as? [String: Any] {
+                            NSLog("Source \(sourceId): type = \(sourceDict["type"] ?? "unknown")")
+                            if let tiles = sourceDict["tiles"] as? [String] {
+                                NSLog("Source \(sourceId) tiles: \(tiles)")
+                            }
+                            if let url = sourceDict["url"] as? String {
+                                NSLog("Source \(sourceId) url: \(url)")
+                            }
+                        }
+                    }
+                }
+                
+                // Serialize back to JSON
+                let modifiedJsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted])
+                let modifiedJsonString = String(data: modifiedJsonData, encoding: .utf8)!
+                
+                // Create a temporary file
+                let tempDir = FileManager.default.temporaryDirectory
+                let tempFile = tempDir.appendingPathComponent("temp_style_\(UUID().uuidString).json")
+                
+                try modifiedJsonString.write(to: tempFile, atomically: true, encoding: .utf8)
+                NSLog("Created temporary style file at: \(tempFile.path)")
+                
+                // Log the content of the file
+                NSLog("Style file content (first 200 chars): \(modifiedJsonString.prefix(200))...")
+                
+                // Set the style URL
+                mapView.styleURL = tempFile
+                
+                // Log success
+                NSLog("setStyleString - JSON style loaded from temporary file: \(tempFile.path)")
+            } catch {
+                NSLog("setStyleString - Error processing JSON style: \(error)")
+            }
         } else if styleString.hasPrefix("/") {
             // Absolute path
+            NSLog("Loading style from absolute path: \(styleString)")
             mapView.styleURL = URL(fileURLWithPath: styleString, isDirectory: false)
         } else if
             !styleString.hasPrefix("http://"),
@@ -1695,17 +1878,33 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
         {
             // We are assuming that the style will be loaded from an asset here.
             let assetPath = registrar.lookupKey(forAsset: styleString)
+            NSLog("Loading style from asset path: \(assetPath)")
             mapView.styleURL = URL(string: assetPath, relativeTo: Bundle.main.resourceURL)
 
         } else if (styleString.hasPrefix("file://")) {
             if let path = Bundle.main.path(forResource: styleString.deletingPrefix("file://"), ofType: "json") {
                 let url = URL(fileURLWithPath: path)
+                NSLog("Loading style from file URL: \(url)")
                 mapView.styleURL = url
             } else {
                 NSLog("setStyleString - Path not found")
             }
         } else {
-            mapView.styleURL = URL(string: styleString)
+            NSLog("Loading style from URL: \(styleString)")
+            
+            // If the URL contains gebeta.app and we have an API key, add it as a query parameter
+            var urlString = styleString
+            if urlString.contains("gebeta.app") && MapLibreMapsPlugin.apiKey != nil {
+                let apiKey = MapLibreMapsPlugin.apiKey!
+                if urlString.contains("?") {
+                    urlString = "\(urlString)&apiKey=\(apiKey)"
+                } else {
+                    urlString = "\(urlString)?apiKey=\(apiKey)"
+                }
+                NSLog("Modified style URL to include API key: \(styleString) -> \(urlString)")
+            }
+            
+            mapView.styleURL = URL(string: urlString)
         }
     }
 

@@ -7,6 +7,7 @@ package app.gebeta.gebetagl;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import org.maplibre.geojson.Polygon;
 import org.maplibre.android.camera.CameraPosition;
 import org.maplibre.android.camera.CameraUpdate;
@@ -285,6 +286,56 @@ class Convert {
       final List attributionButtonMarginsData = toList(attributionButtonMargins);
       final Point point = toPoint(attributionButtonMarginsData, metrics.density);
       sink.setAttributionButtonMargins(point.x, point.y);
+    }
+    
+    // Handle transformRequest parameter
+    final Object transformRequest = data.get("transformRequest");
+    if (transformRequest != null && context != null) {
+      // For Android, we only support adding headers to all requests
+      try {
+        // Extract the headers from a sample call to the transformRequest function
+        if (transformRequest instanceof Map) {
+          final Map<?, ?> transformRequestMap = toMap(transformRequest);
+          if (transformRequestMap.containsKey("headers") && transformRequestMap.get("headers") instanceof Map) {
+            final Map<?, ?> headersMap = toMap(transformRequestMap.get("headers"));
+            final Map<String, String> headers = new HashMap<>();
+            
+            for (Map.Entry<?, ?> entry : headersMap.entrySet()) {
+              if (entry.getKey() != null && entry.getValue() != null) {
+                headers.put(toString(entry.getKey()), toString(entry.getValue()));
+              }
+            }
+            
+            // Set the headers for all requests
+            if (!headers.isEmpty()) {
+              MapLibreHttpRequestUtil.setHttpHeaders(headers, null);
+            }
+          }
+        }
+      } catch (Exception e) {
+        // Log error but continue
+        Log.e(TAG, "Error setting transformRequest headers: " + e.getMessage());
+      }
+    }
+    
+    // Handle apiKey parameter
+    final Object apiKey = data.get("apiKey");
+    if (apiKey != null && context != null) {
+      try {
+        final String apiKeyString = toString(apiKey);
+        if (!apiKeyString.isEmpty()) {
+          // Create headers map with Authorization bearer token
+          final Map<String, String> headers = new HashMap<>();
+          headers.put("Authorization", "Bearer " + apiKeyString);
+          
+          // Set the headers for all requests
+          MapLibreHttpRequestUtil.setHttpHeaders(headers, null);
+          Log.i(TAG, "API key header set successfully");
+        }
+      } catch (Exception e) {
+        // Log error but continue
+        Log.e(TAG, "Error setting API key header: " + e.getMessage());
+      }
     }
   }
 }

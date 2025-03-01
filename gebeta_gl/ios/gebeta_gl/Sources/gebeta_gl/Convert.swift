@@ -5,8 +5,8 @@ class Convert {
         guard let options = options as? [String: Any] else { return }
         /*
          * DISABLE ATTRIBUTION BUTTON
+
          */
-        delegate.setAttributionEnabled(false)
         if let cameraTargetBounds = options["cameraTargetBounds"] as? [[[Double]]] {
             delegate
                 .setCameraTargetBounds(bounds: MLNCoordinateBounds.fromArray(cameraTargetBounds[0]))
@@ -72,6 +72,36 @@ class Convert {
            let position = MLNOrnamentPosition(rawValue: attributionButtonPosition)
         {
             delegate.setAttributionButtonPosition(position: position)
+        }
+
+        // Handle transformRequest parameter
+        if let transformRequest = options["transformRequest"] as? [String: Any] {
+            // For iOS, we only support adding headers to all requests
+            if let headers = transformRequest["headers"] as? [String: String] {
+                // Set the headers for all requests
+                if !headers.isEmpty {
+                    // Configure URLSessionConfiguration with headers
+                    let sessionConfig = URLSessionConfiguration.default
+                    var existingHeaders = sessionConfig.httpAdditionalHeaders as? [String: String] ?? [:]
+
+                    // Add new headers
+                    for (key, value) in headers {
+                        existingHeaders[key] = value
+                    }
+
+                    sessionConfig.httpAdditionalHeaders = existingHeaders
+
+                    // Set the configuration for MapLibre
+                    MLNNetworkConfiguration.sharedManager.sessionConfiguration = sessionConfig
+                }
+            }
+        }
+
+        // Handle apiKey parameter
+        if let apiKey = options["apiKey"] as? String, !apiKey.isEmpty {
+            NSLog("API Key found in options, setting globally")
+            // Use the static method to set the API key globally
+            MapLibreMapsPlugin.setGlobalApiKey(apiKey)
         }
     }
     

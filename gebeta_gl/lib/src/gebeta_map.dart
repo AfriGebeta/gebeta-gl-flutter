@@ -47,6 +47,8 @@ class GebetaMap extends StatefulWidget {
     this.onCameraTrackingChanged,
     this.onCameraIdle,
     this.onMapIdle,
+    this.transformRequest,
+    this.apiKey,
     this.annotationOrder = const [
       AnnotationType.line,
       AnnotationType.symbol,
@@ -97,6 +99,31 @@ class GebetaMap extends StatefulWidget {
 
   /// True if the map should show a compass when rotated.
   final bool compassEnabled;
+
+  /// A callback that can transform tile requests by modifying URLs and adding headers.
+  /// This is particularly useful for adding authentication headers to tile requests.
+  /// 
+  /// Example:
+  /// ```dart
+  /// transformRequest: (url, resourceType) {
+  ///   if (resourceType == 'Tile') {
+  ///     return {
+  ///       'url': url.replaceAll('~~TILE_ENDPOINT~~', 'https://your-tile-server.com'),
+  ///       'headers': {'Authorization': 'Bearer $apiKey'}
+  ///     };
+  ///   }
+  ///   return {'url': url};
+  /// }
+  /// ```
+  /// 
+  /// Note: This is fully supported on Web. On Android and iOS, only headers are supported.
+  final TransformRequestCallback? transformRequest;
+
+  /// API key for authentication with tile servers.
+  /// If provided, it will be added as a bearer token in the Authorization header for all requests.
+  /// This is a convenience parameter that internally creates a transformRequest function.
+  /// If both apiKey and transformRequest are provided, transformRequest takes precedence.
+  final String? apiKey;
 
   /// True if drag functionality should be enabled.
   ///
@@ -389,6 +416,8 @@ class _GebetaMapOptions {
     this.compassViewMargins,
     this.attributionButtonPosition,
     this.attributionButtonMargins,
+    this.transformRequest,
+    this.apiKey,
   });
 
   _GebetaMapOptions.fromWidget(GebetaMap map)
@@ -412,6 +441,8 @@ class _GebetaMapOptions {
           compassViewMargins: map.compassViewMargins,
           attributionButtonPosition: map.attributionButtonPosition,
           attributionButtonMargins: map.attributionButtonMargins,
+          transformRequest: map.transformRequest,
+          apiKey: map.apiKey,
         );
 
   final bool? compassEnabled;
@@ -449,6 +480,10 @@ class _GebetaMapOptions {
   final AttributionButtonPosition? attributionButtonPosition;
 
   final Point? attributionButtonMargins;
+  
+  final TransformRequestCallback? transformRequest;
+
+  final String? apiKey;
 
   final _gestureGroup = {
     'rotateGesturesEnabled',
@@ -496,6 +531,8 @@ class _GebetaMapOptions {
     addIfNonNull('attributionButtonPosition', attributionButtonPosition?.index);
     addIfNonNull(
         'attributionButtonMargins', pointToArray(attributionButtonMargins));
+    addIfNonNull('transformRequest', transformRequest);
+    addIfNonNull('apiKey', apiKey);
     return optionsMap;
   }
 

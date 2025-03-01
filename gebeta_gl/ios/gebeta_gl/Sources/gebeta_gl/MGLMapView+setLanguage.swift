@@ -1,6 +1,6 @@
 //
 //  MLNMapView+setLanguage.swift
-//  maplibre_gl
+//  gebeta_gl
 //
 //  Created by Julian Bissekkou on 09.08.23.
 //

@@ -12,6 +12,10 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.MethodChannel;
+import android.content.Context;
+import android.util.Log;
+import org.maplibre.android.MapLibre;
+import org.maplibre.android.WellKnownTileServer;
 
 /**
  * Plugin for controlling a set of MapLibreMap views to be shown as overlays on top of the Flutter
@@ -21,8 +25,10 @@ import io.flutter.plugin.common.MethodChannel;
  */
 public class MapLibreMapsPlugin implements FlutterPlugin, ActivityAware {
 
+  private static final String TAG = "MapLibreMapsPlugin";
   static FlutterAssets flutterAssets;
   private Lifecycle lifecycle;
+  private Context applicationContext;
 
   public MapLibreMapsPlugin() {
     // no-op
@@ -33,15 +39,26 @@ public class MapLibreMapsPlugin implements FlutterPlugin, ActivityAware {
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
     flutterAssets = binding.getFlutterAssets();
+    applicationContext = binding.getApplicationContext();
+
+    // Initialize MapLibre
+    try {
+      // Initialize MapLibre with a null API key and MapTiler as the tile server
+      // This is required before creating any MapView
+      MapLibre.getInstance(applicationContext, null, WellKnownTileServer.MapTiler);
+      Log.i(TAG, "MapLibre initialized successfully");
+    } catch (Exception e) {
+      Log.e(TAG, "Error initializing MapLibre: " + e.getMessage());
+    }
 
     MethodChannel methodChannel =
-        new MethodChannel(binding.getBinaryMessenger(), "plugins.flutter.io/maplibre_gl");
+        new MethodChannel(binding.getBinaryMessenger(), "plugins.flutter.io/gebeta_gl");
     methodChannel.setMethodCallHandler(new GlobalMethodHandler(binding));
 
     binding
         .getPlatformViewRegistry()
         .registerViewFactory(
-            "plugins.flutter.io/maplibre_gl",
+            "plugins.flutter.io/gebeta_gl",
             new MapLibreMapFactory(
                 binding.getBinaryMessenger(),
                 new LifecycleProvider() {

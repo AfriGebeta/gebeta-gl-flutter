@@ -44,9 +44,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:maplibre_gl_platform_interface/maplibre_gl_platform_interface.dart';
+import 'package:gebeta_gl_platform_interface/maplibre_gl_platform_interface.dart';
 
-export 'package:maplibre_gl_platform_interface/maplibre_gl_platform_interface.dart'
+export 'package:gebeta_gl_platform_interface/maplibre_gl_platform_interface.dart'
     show
         Annotation,
         ArgumentCallbacks,
@@ -77,6 +77,7 @@ export 'package:maplibre_gl_platform_interface/maplibre_gl_platform_interface.da
         SourceProperties,
         Symbol,
         SymbolOptions,
+        TransformRequestCallback,
         UserHeading,
         UserLocation,
         VectorSourceProperties,

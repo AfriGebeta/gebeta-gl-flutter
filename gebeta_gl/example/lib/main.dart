@@ -32,6 +32,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // Your API key
+  final String apiKey = 'your api key';
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  
   // Function to load the map style
   Future<String> loadMapStyle() async {
     return await rootBundle.loadString('assets/styles/basic.json');
@@ -41,11 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
     var byteData = await rootBundle.load("assets/marker-black.png");
     return byteData.buffer.asUint8List();
   }
-
+  
   void onMapCreated(GebetaMapController controller) async {
     var markerImage = await loadMarkerImage();
     controller.addImage('marker', markerImage);
-
 
     await controller.addSymbol(
       SymbolOptions(
@@ -117,10 +129,12 @@ class _MyHomePageState extends State<MyHomePage> {
               compassViewPosition: CompassViewPosition.topRight,
               styleString: styleString,
               initialCameraPosition: CameraPosition(
-                target: LatLng(9.0192, 38.7525), // Example: San Francisco
+                target: LatLng(9.0192, 38.7525), // Addis Ababa
                 zoom: 10.0,
               ),
               onMapCreated: onMapCreated,
+              // Use the apiKey parameter instead of transformRequest
+              apiKey: apiKey,
             );
           } else {
             // Handle any other unexpected states

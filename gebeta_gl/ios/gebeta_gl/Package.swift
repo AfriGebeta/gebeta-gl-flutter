@@ -9,7 +9,7 @@ let package = Package(
         .iOS("12.0"),
     ],
     products: [
-        .library(name: "maplibre-gl", targets: ["maplibre_gl"])
+        .library(name: "gebeta-gl", targets: ["maplibre_gl"])
     ],
     dependencies: [
         // When updating the dependency version,

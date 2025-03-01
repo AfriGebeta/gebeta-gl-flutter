@@ -32,7 +32,7 @@ class MapLibreMapController extends MapLibrePlatform
     _creationParams = creationParams;
     _registerViewFactory(onPlatformViewCreated, hashCode);
     return HtmlElementView(
-        viewType: 'plugins.flutter.io/maplibre_gl_$hashCode');
+        viewType: 'plugins.flutter.io/gebeta_gl_$hashCode');
   }
 
   @override
@@ -60,18 +60,47 @@ class MapLibreMapController extends MapLibrePlatform
     if (_creationParams.containsKey('initialCameraPosition')) {
       final camera = _creationParams['initialCameraPosition'];
       _dragEnabled = _creationParams['dragEnabled'] ?? true;
-
-      _map = MapLibreMap(
-        MapOptions(
-          container: _mapElement,
-          style: _creationParams["styleString"],
-          center: LngLat(camera['target'][1], camera['target'][0]),
-          zoom: camera['zoom'],
-          bearing: camera['bearing'],
-          pitch: camera['tilt'],
-          attributionControl: false, //avoid duplicate control
-        ),
+      
+      // Get the transformRequest callback if it exists
+      final transformRequestCallback = _creationParams['options']?['transformRequest'];
+      
+      // Get the API key if it exists
+      final apiKey = _creationParams['options']?['apiKey'];
+      
+      // Create map options
+      final mapOptions = MapOptions(
+        container: _mapElement,
+        style: _creationParams["styleString"],
+        center: LngLat(camera['target'][1], camera['target'][0]),
+        zoom: camera['zoom'],
+        bearing: camera['bearing'],
+        pitch: camera['tilt'],
+        attributionControl: false, //avoid duplicate control
       );
+      
+      // Add transformRequest if it exists
+      if (transformRequestCallback != null) {
+        mapOptions.transformRequest = (String url, String resourceType) {
+          final result = transformRequestCallback(url, resourceType);
+          return RequestParameters(
+            url: result['url'],
+            headers: result['headers'],
+            credentials: result['credentials'],
+            method: result['method'],
+          );
+        };
+      }
+      // Add API key as bearer token if it exists and transformRequest doesn't
+      else if (apiKey != null && apiKey is String && apiKey.isNotEmpty) {
+        mapOptions.transformRequest = (String url, String resourceType) {
+          return RequestParameters(
+            url: url,
+            headers: {'Authorization': 'Bearer $apiKey'},
+          );
+        };
+      }
+
+      _map = MapLibreMap(mapOptions);
       _map.on('load', _onStyleLoaded);
       _map.on('click', _onMapClick);
       // long click not available in web, so it is mapped to double click
