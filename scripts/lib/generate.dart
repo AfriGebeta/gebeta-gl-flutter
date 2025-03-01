@@ -63,7 +63,7 @@ main() async {
     "gebeta_gl/lib/src/layer_expressions.dart",
     "gebeta_gl/lib/src/layer_properties.dart",
     "gebeta_gl_web/lib/src/layer_tools.dart",
-    "maplibre_gl_platform_interface/lib/src/source_properties.dart",
+    "gebeta_gl_platform_interface/lib/src/source_properties.dart",
   ];
 
   for (final template in templates) {

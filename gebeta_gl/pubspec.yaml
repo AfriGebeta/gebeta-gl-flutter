@@ -1,8 +1,8 @@
 name: gebeta_gl
 description: A Flutter plugin for integrating MapLibre Maps inside a Flutter application on Android, iOS and web platforms.
-version: 0.21.5
-repository: https://github.com/maplibre/flutter-maplibre-gl
-issue_tracker: https://github.com/maplibre/flutter-maplibre-gl/issues
+version: 0.21.6
+repository: https://github.com/rav3n11/gebeta-map-futter-public
+issue_tracker: https://github.com/rav3n11/gebeta-map-futter-public/issues
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
