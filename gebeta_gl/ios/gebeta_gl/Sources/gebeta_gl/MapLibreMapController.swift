@@ -39,6 +39,8 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
         mapView = MLNMapView(frame: frame)
         mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         mapView.logoView.isHidden = true
+        // REMOVE ATTRIBUTION BUTTON
+        mapView.attributionButton.isHidden = true
         self.registrar = registrar
 
         super.init()
@@ -1165,6 +1167,9 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
         isMapReady = true
         updateMyLocationEnabled()
 
+        // REMOVE ATTRIBUTION BUTTON
+        mapView.attributionButton.isHidden = true
+
         // Log the current network configuration to verify headers are still set
         NSLog("Network configuration after style loaded:")
         MapLibreMapsPlugin.logNetworkConfiguration()
@@ -1970,6 +1975,8 @@ class MapLibreMapController: NSObject, FlutterPlatformView, MLNMapViewDelegate, 
 
     func setAttributionButtonPosition(position: MLNOrnamentPosition) {
         mapView.attributionButtonPosition = position
+        // REMOVE ATTRIBUTION BUTTON
+        mapView.attributionButton.isHidden = true
     }
 }
 

@@ -1419,7 +1419,4 @@ class GebetaMapController extends ChangeNotifier {
 }
 
 extension on MapLibrePlatform {
-  Future clearAmbientCache() {
-    return Future(() => true);
-  }
 }

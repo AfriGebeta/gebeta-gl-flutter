@@ -6,10 +6,6 @@
 
 This Flutter plugin allows to show **embedded interactive and customizable
 vector maps** as a Flutter widget.
-
-- This project is a fork
-  of [flutter-maplibre-gl](https://github.com/maplibre/flutter-maplibre-gl),
-  replacing its usage of Maplibre with Gebeta libraries and extending functionality
   
 This project only supports a subset of the API exposed by these libraries.
 

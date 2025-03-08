@@ -307,8 +307,8 @@ class _GebetaMapState extends State<GebetaMap> {
           widget.gestureRecognizers,
         ),
         Positioned(
-          bottom: 4.0,
-          right: 4.0,
+          bottom: 8.0,
+          right: 8.0,
           child: Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
@@ -316,7 +316,7 @@ class _GebetaMapState extends State<GebetaMap> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 4.0,
                   offset: const Offset(2, 2),
                 ),
